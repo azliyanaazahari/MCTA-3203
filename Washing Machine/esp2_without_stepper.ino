@@ -1,7 +1,12 @@
 #include <Pixy.h>
+#include "DHT.h"
 
 // Initialize Pixy
 Pixy pixy;
+
+#define DHTPIN 4        // GPIO pin for DHT (D4 on NodeMCU)
+#define DHTTYPE DHT11    // DHT11 sensor
+DHT dht(DHTPIN, DHTTYPE);
 
 // Define color signatures
 #define GREEN 1
@@ -16,13 +21,33 @@ int clothesCount = 0;
 
 void setup() {
   // Start the serial monitor and initialize Pixy
-  Serial.begin(9600);
+  Serial.begin(115200);
+  dht.begin();
   pixy.init();
 }
 
 void loop() {
   // Retrieve the number of detected blocks
   int blocks = pixy.getBlocks();
+
+  // Read temperature and humidity
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+
+  if (isnan(temperature) || isnan(humidity)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
+
+  Serial.print("Temperature: ");
+  Serial.print(temperature);
+  Serial.println(" °C");
+
+  Serial.print("Humidity: ");
+  Serial.print(humidity);
+  Serial.println(" %");
+
+  delay(1000);
 
   if (blocks) {
     // Iterate through detected blocks
